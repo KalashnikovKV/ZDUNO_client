@@ -1,4 +1,4 @@
-export type QuestionType = "choice" | "text";
+export type QuestionType = 'choice' | 'text' | 'multiple';
 
 export interface Question {
   id: number;

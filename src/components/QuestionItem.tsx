@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { submitAnswer } from "../features/questions/questionsSlice";
-import { RootState } from "../store";
-import { QuestionType } from "../types";
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { submitAnswer } from '../features/questions/questionsSlice';
+import { RootState } from '../store';
+import { QuestionType } from '../types';
 
 interface Props {
   id: number;
@@ -16,11 +16,21 @@ export const QuestionItem = ({ id, text, type, options }: Props) => {
   const savedAnswer = useSelector((state: RootState) =>
     state.quiz.answers.find((a) => a.id === id)
   );
-  const [input, setInput] = useState(savedAnswer?.userAnswer || "");
+  const [input, setInput] = useState(
+    type === 'multiple'
+      ? savedAnswer?.userAnswer
+        ? JSON.parse(savedAnswer.userAnswer)
+        : []
+      : savedAnswer?.userAnswer || ''
+  );
 
   const handleSubmit = () => {
-    if (!input.trim()) return;
-    dispatch(submitAnswer({ id, userAnswer: input }));
+    if (type === 'multiple') {
+      dispatch(submitAnswer({ id, userAnswer: JSON.stringify(input) }));
+    } else {
+      if (!input.trim()) return;
+      dispatch(submitAnswer({ id, userAnswer: input }));
+    }
   };
 
   return (
@@ -28,7 +38,7 @@ export const QuestionItem = ({ id, text, type, options }: Props) => {
       <p className='mb-4 text-gray-800 font-medium'>{text}</p>
 
       {/* Варианты выбора */}
-      {type === "choice" && options && (
+      {type === 'choice' && options && (
         <div className='space-y-2 mb-4'>
           {options.map((option) => (
             <label key={option} className='flex items-center gap-2'>
@@ -45,8 +55,33 @@ export const QuestionItem = ({ id, text, type, options }: Props) => {
         </div>
       )}
 
+      {/* Выбор нескольких вариантов */}
+      {type === 'multiple' && options && (
+        <div className='space-y-2 mb-4'>
+          {options.map((option) => (
+            <label key={option} className='flex items-center gap-2'>
+              <input
+                type='checkbox'
+                value={option}
+                checked={input.includes(option)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setInput((prev: string[]) =>
+                    checked
+                      ? [...prev, option]
+                      : prev.filter((o) => o !== option)
+                  );
+                }}
+                className='accent-blue-600'
+              />
+              <span className='text-sm text-gray-700'>{option}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
       {/* Ввод текста */}
-      {type === "text" && (
+      {type === 'text' && (
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

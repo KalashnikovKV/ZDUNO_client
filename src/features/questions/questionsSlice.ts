@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Answer, Question } from "../../types";
-import { mockQuestions } from "./mockQuestions";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Answer, Question } from '../../types';
+import { mockQuestions } from './mockQuestions';
 
 interface State {
   questions: Question[];
@@ -13,7 +13,7 @@ const initialState: State = {
 };
 
 const questionsSlice = createSlice({
-  name: "questions",
+  name: 'questions',
   initialState,
   reducers: {
     submitAnswer: (
@@ -23,9 +23,17 @@ const questionsSlice = createSlice({
       const question = state.questions.find((q) => q.id === action.payload.id);
       if (!question) return;
 
-      const isCorrect =
-        question.correctAnswer.trim().toLowerCase() ===
-        action.payload.userAnswer.trim().toLowerCase();
+      let isCorrect = false;
+      if (question.type === 'multiple') {
+        const correctAnswers = JSON.parse(question.correctAnswer).sort();
+        const userAnswers = JSON.parse(action.payload.userAnswer).sort();
+        isCorrect =
+          JSON.stringify(correctAnswers) === JSON.stringify(userAnswers);
+      } else {
+        isCorrect =
+          question.correctAnswer.trim().toLowerCase() ===
+          action.payload.userAnswer.trim().toLowerCase();
+      }
 
       const existing = state.answers.find(
         (ans) => ans.id === action.payload.id
